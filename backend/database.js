@@ -55,6 +55,7 @@ function seedUsers() {
             db.run(insertSql, [1, 'Alice (Manager)', 'manager', null]);
             db.run(insertSql, [2, 'Bob (Employee)', 'employee', 1]);
             db.run(insertSql, [3, 'Charlie (Employee)', 'employee', 1]);
+            db.run(insertSql, [4, 'David (Finance)', 'finance', null]);
         } else {
             console.log("Users already seeded.");
         }

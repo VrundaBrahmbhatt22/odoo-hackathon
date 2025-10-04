@@ -61,7 +61,7 @@ app.get("/expenses/manager/:managerId", (req, res) => {
 // 4. Manager: Approve or Reject an expense
 app.put("/expenses/:id/status", (req, res) => {
     const { status } = req.body;
-    if (!['approved', 'rejected'].includes(status)) {
+    if (!['approved', 'rejected', 'pending_finance'].includes(status)) {
         return res.status(400).json({ "error": "Invalid status value." });
     }
     const sql = `UPDATE Expenses SET status = ? WHERE id = ?`;
@@ -70,6 +70,38 @@ app.put("/expenses/:id/status", (req, res) => {
             return res.status(400).json({"error": err.message});
         }
         res.json({ "message": "success", "changes": this.changes });
+    });
+});
+
+// --- NEW LOGIN ENDPOINT ---
+app.post("/login", (req, res) => {
+    const { userId } = req.body;
+    const sql = "SELECT * FROM Users WHERE id = ?";
+    db.get(sql, [userId], (err, user) => {
+        if (err) {
+            return res.status(400).json({"error": err.message});
+        }
+        if (user) {
+            res.json({ "message": "success", "data": user });
+        } else {
+            res.status(404).json({ "error": "User not found" });
+        }
+    });
+});
+
+// --- NEW FINANCE ENDPOINT ---
+app.get("/expenses/finance", async (req, res) => {
+    const sql = `
+        SELECT E.*, U.name as employee_name 
+        FROM Expenses E
+        JOIN Users U ON E.employee_id = U.id
+        WHERE E.status = 'pending_finance'
+    `;
+    db.all(sql, [], (err, rows) => {
+        if (err) {
+            return res.status(400).json({"error": err.message});
+        }
+        res.json({ "message": "success", "data": rows });
     });
 });
 
