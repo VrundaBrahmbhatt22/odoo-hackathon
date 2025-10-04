@@ -2,16 +2,14 @@ import React from 'react';
 
 const API_URL = 'http://localhost:3001';
 
-const ApprovalList = ({ expenses, refreshData }) => {
-  const handleUpdateStatus = async (id, approvalAction) => {
-    // If manager approves, it goes to finance. If they reject, it's final.
-    const newStatus = approvalAction === 'approved' ? 'pending_finance' : 'rejected';
-
+const FinanceList = ({ expenses, refreshData }) => {
+  // The Finance user's approval is the final step
+  const handleUpdateStatus = async (id, status) => {
     try {
       await fetch(`${API_URL}/expenses/${id}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({ status: status }), // 'approved' or 'rejected'
       });
       refreshData();
     } catch (error) {
@@ -21,9 +19,9 @@ const ApprovalList = ({ expenses, refreshData }) => {
 
   return (
     <div className="approval-list-container">
-      <h2>Team Expenses for Approval</h2>
+      <h2>Expenses for Final Approval</h2>
       <ul className="approval-list">
-        {expenses.length === 0 && <p>No pending expenses.</p>}
+        {expenses.length === 0 && <p>No expenses awaiting final approval.</p>}
         {expenses.map((expense) => (
           <li key={expense.id} className="list-item">
             <div className="item-details">
@@ -31,7 +29,7 @@ const ApprovalList = ({ expenses, refreshData }) => {
               <p className="secondary">{expense.employee_name} - {expense.currency} {expense.amount.toFixed(2)}</p>
             </div>
             <div className="action-buttons">
-              <button className="approve-btn" onClick={() => handleUpdateStatus(expense.id, 'approved')}>Approve</button>
+              <button className="approve-btn" onClick={() => handleUpdateStatus(expense.id, 'approved')}>Final Approve</button>
               <button className="reject-btn" onClick={() => handleUpdateStatus(expense.id, 'rejected')}>Reject</button>
             </div>
           </li>
@@ -41,4 +39,4 @@ const ApprovalList = ({ expenses, refreshData }) => {
   );
 };
 
-export default ApprovalList;
+export default FinanceList;

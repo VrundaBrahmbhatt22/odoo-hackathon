@@ -4,50 +4,70 @@ import Dashboard from './components/Dashboard';
 import ExpenseForm from './components/ExpenseForm';
 import ExpenseList from './components/ExpenseList';
 import ApprovalList from './components/ApprovalList';
+import FinanceList from './components/FinanceList';
+import Login from './components/Login';
 
 const API_URL = 'http://localhost:3001';
 
-// Hardcoded users to simulate login
 const USERS = {
   '1': { id: 1, name: 'Alice (Manager)', role: 'manager' },
   '2': { id: 2, name: 'Bob (Employee)', role: 'employee', manager_id: 1 },
-  '3': { id: 3, name: 'Charlie (Employee)', role: 'employee', manager_id: 1 }
+  '3': { id: 3, name: 'Charlie (Employee)', role: 'employee', manager_id: 1 },
+  '4': { id: 4, name: 'David (Finance)', role: 'finance' }
 };
 
 function App() {
-  const [currentUser, setCurrentUser] = useState(USERS['2']);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [myExpenses, setMyExpenses] = useState([]);
   const [teamExpenses, setTeamExpenses] = useState([]);
+  const [financeExpenses, setFinanceExpenses] = useState([]);
 
   const fetchData = useCallback(async () => {
+    if (!currentUser) return;
+
     if (currentUser.role === 'employee') {
-      const response = await fetch(`${API_URL}/expenses/employee/${currentUser.id}`);
-      const data = await response.json();
+      const res = await fetch(`${API_URL}/expenses/employee/${currentUser.id}`);
+      const data = await res.json();
       setMyExpenses(data.data);
     } else if (currentUser.role === 'manager') {
-      const response = await fetch(`${API_URL}/expenses/manager/${currentUser.id}`);
-      const data = await response.json();
+      const res = await fetch(`${API_URL}/expenses/manager/${currentUser.id}`);
+      const data = await res.json();
       setTeamExpenses(data.data);
+    } else if (currentUser.role === 'finance') {
+      const res = await fetch(`${API_URL}/expenses/finance`);
+      const data = await res.json();
+      setFinanceExpenses(data.data);
     }
   }, [currentUser]);
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  const handleUserChange = (event) => {
-    setCurrentUser(USERS[event.target.value]);
+  useEffect(() => { if (isLoggedIn) { fetchData(); } }, [isLoggedIn, fetchData]);
+  
+  const handleLoginSuccess = (user) => {
+    setCurrentUser(USERS[user.id]);
+    setIsLoggedIn(true);
   };
+
+  // --- NEW LOGOUT FUNCTION ---
+  const handleLogout = () => {
+    setCurrentUser(null);
+    setIsLoggedIn(false);
+  };
+
+  if (!isLoggedIn) {
+    return (
+      <div className="app-container">
+        <Login onLoginSuccess={handleLoginSuccess} />
+      </div>
+    );
+  }
 
   return (
     <div className="app-container">
       <div className="user-switcher">
-        <label htmlFor="user-select">Current User</label>
-        <select id="user-select" value={currentUser.id} onChange={handleUserChange}>
-          {Object.values(USERS).map(user => (
-            <option key={user.id} value={user.id}>{user.name}</option>
-          ))}
-        </select>
+        <p>Welcome, {currentUser.name}</p>
+        {/* --- NEW LOGOUT BUTTON --- */}
+        <button onClick={handleLogout} className="logout-btn">Logout</button>
       </div>
 
       {currentUser.role === 'employee' && (
@@ -60,6 +80,12 @@ function App() {
       {currentUser.role === 'manager' && (
         <Dashboard title="Manager Dashboard">
           <ApprovalList expenses={teamExpenses} refreshData={fetchData} />
+        </Dashboard>
+      )}
+
+      {currentUser.role === 'finance' && (
+        <Dashboard title="Finance Dashboard">
+          <FinanceList expenses={financeExpenses} refreshData={fetchData} />
         </Dashboard>
       )}
     </div>

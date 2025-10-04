@@ -135,3 +135,18 @@
 }
 .approve-btn { background-color: #2ecc71; }
 .reject-btn { background-color: #e74c3c; }
+.status-pending-finance { background-color: #3498db; color: white; }
+
+.logout-btn {
+  margin-left: 20px;
+  padding: 8px 12px;
+  font-size: 0.9em;
+  background-color: #555;
+  color: white;
+  border: 1px solid #777;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.logout-btn:hover {
+  background-color: #777;
+}
